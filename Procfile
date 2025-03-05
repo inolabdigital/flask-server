@@ -1,1 +1,1 @@
-web: ./install_playwright.sh && python3 server.py
+web: bash install_playwright.sh && python3 server.py

@@ -1,2 +1,3 @@
 #!/bin/bash
-python3 -m playwright install --with-deps
+pip install playwright
+playwright install chromium
