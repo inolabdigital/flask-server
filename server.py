@@ -48,20 +48,15 @@ async def generate_image(user_id):
     </html>
     """
 
-    # Gerar um nome único para a imagem
     filename = f"extrato_{user_id}_{int(time.time())}_{uuid.uuid4().hex[:6]}.png"
 
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         page = await browser.new_page()
 
-        # Define o tamanho do viewport para 3:4 sem margens
         await page.set_viewport_size({"width": 750, "height": 1000})
-
-        # Define o conteúdo HTML
         await page.set_content(html_content)
 
-        # Tira o screenshot com nome único
         await page.screenshot(path=filename, full_page=False, omit_background=True)
 
         await browser.close()
@@ -69,14 +64,21 @@ async def generate_image(user_id):
 
     return filename
 
-@app.route('/generate-image', methods=['POST'])
-def handle_request():
-    data = request.json
-    user_id = data.get("user_id", "default_user")
-    
+@app.route('/generate', methods=['POST'])
+def generate():
+    data = request.get_json()
+    user_id = data.get("user_id")
+
+    if not user_id:
+        return jsonify({"error": "user_id é obrigatório"}), 400
+
     filename = asyncio.run(generate_image(user_id))
-    
-    return jsonify({"image_path": filename})
+
+    return jsonify({"message": "Imagem gerada com sucesso!", "filename": filename})
+
+@app.route('/')
+def home():
+    return "Servidor Flask rodando no Railway!"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
