@@ -1,2 +1,2 @@
 #!/bin/bash
-npx playwright install --with-deps
+python3 -m playwright install --with-deps
