@@ -12,8 +12,10 @@ app = Flask(__name__)
 IMAGE_FOLDER = "images"
 os.makedirs(IMAGE_FOLDER, exist_ok=True)
 
-# Função para gerar a imagem
-async def generate_image(user_id):
+# Função para gerar a imagem com os lançamentos recebidos
+async def generate_image(user_id, lancamentos):
+    total_gasto = sum(float(item["value"]) for item in lancamentos)
+
     html_content = f"""
     <!DOCTYPE html>
     <html lang="pt">
@@ -37,7 +39,7 @@ async def generate_image(user_id):
     <body>
         <div class="container">
             <h1>📜 Extrato Financeiro</h1>
-            <p class="summary">Total Gasto: R$ 1234.56</p>
+            <p class="summary">Total Gasto: R$ {total_gasto:.2f}</p>
             <div class="table-container">
                 <table>
                     <tr>
@@ -46,8 +48,7 @@ async def generate_image(user_id):
                         <th>Categoria</th>
                         <th>Valor (R$)</th>
                     </tr>
-                    <tr><td>2025-03-04</td><td>Água</td><td>Moradia</td><td>20</td></tr>
-                    <tr><td>2025-03-05</td><td>Aluguel</td><td>Moradia</td><td>1200</td></tr>
+                    {''.join(f"<tr><td>{item['date']}</td><td>{item['description']}</td><td>{item['category']}</td><td>{item['value']}</td></tr>" for item in lancamentos)}
                 </table>
             </div>
         </div>
@@ -73,10 +74,9 @@ async def generate_image(user_id):
 
 # Função para enviar a imagem via Ultramsg
 def send_whatsapp_image(user_id, filename):
-    instance_id = "instance108935"  # ID da instância no Ultramsg
-    api_token = "kpqhxmm0ojg2ufqk"  # Token do Ultramsg
+    instance_id = "instance108935"
+    api_token = "kpqhxmm0ojg2ufqk"
 
-    # Criar URL pública para a imagem
     image_url = f"https://flask-server-production-e1cb.up.railway.app/images/{os.path.basename(filename)}"
 
     ultramsg_url = f"https://api.ultramsg.com/{instance_id}/messages/image?token={api_token}"
@@ -105,13 +105,13 @@ def generate():
     data = request.get_json()
     
     user_id = data.get("user_id")
+    lancamentos = data.get("lancamentos", [])
 
-    if not user_id:
-        return jsonify({"error": "user_id é obrigatório"}), 400
+    if not user_id or not lancamentos:
+        return jsonify({"error": "user_id e lancamentos são obrigatórios"}), 400
 
-    filename = asyncio.run(generate_image(user_id))
+    filename = asyncio.run(generate_image(user_id, lancamentos))
 
-    # Enviar a imagem para o WhatsApp
     whatsapp_response = send_whatsapp_image(user_id, filename)
 
     return jsonify({"message": "Imagem gerada e enviada com sucesso!", "filename": filename, "whatsapp_response": whatsapp_response})
