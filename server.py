@@ -71,11 +71,12 @@ async def generate_image():
 # Função para enviar a imagem via Ultramsg
 def send_whatsapp_image(filename):
     user_id = "5511982252058"  # Número fixo do WhatsApp para teste
-    ultramsg_url = "https://api.ultramsg.com/instance108935/messages/image"
-    api_token = "kpqhxmm0ojg2ufqk"
+    instance_id = "instance108935"  # ID da instância no Ultramsg
+    api_token = "kpqhxmm0ojg2ufqk"  # Novo token do Ultramsg
+
+    ultramsg_url = f"https://api.ultramsg.com/{instance_id}/messages/image?token={api_token}"
 
     payload = {
-        "token": api_token,
         "to": f"{user_id}@c.us",
         "image": f"https://flask-server-production-e1cb.up.railway.app/images/{filename}",
         "caption": "📊 Seu extrato financeiro gerado automaticamente."
