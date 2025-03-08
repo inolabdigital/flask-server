@@ -16,7 +16,7 @@ os.makedirs(IMAGE_FOLDER, exist_ok=True)
 async def generate_image(user_id, lancamentos):
     total_gasto = sum(float(item["value"]) for item in lancamentos)
 
-    # Criar o HTML com os lançamentos recebidos
+    # Criar o HTML com os lançamentos (sem título e sem total gasto)
     html_content = f"""
     <!DOCTYPE html>
     <html lang="pt">
@@ -25,16 +25,15 @@ async def generate_image(user_id, lancamentos):
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Extrato Financeiro</title>
         <style>
-            body {{ font-family: Arial, sans-serif; background-color: #fff; color: #333; text-align: center; padding: 20px; }}
-            h1 {{ color: #1d4ed8; }}
+            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap');
+            
+            body {{ font-family: 'Montserrat', sans-serif; background-color: #fff; color: #333; text-align: center; padding: 20px; }}
             table {{ width: 100%; border-collapse: collapse; margin-top: 10px; }}
             th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-            th {{ background-color: #2563eb; color: white; }}
+            th {{ background-color: #008DC2; color: white; }}
         </style>
     </head>
     <body>
-        <h1>📜 Extrato Financeiro</h1>
-        <p><strong>Total Gasto: R$ {total_gasto:.2f}</strong></p>
         <table>
             <tr>
                 <th>Data</th>
@@ -62,10 +61,10 @@ async def generate_image(user_id, lancamentos):
         await browser.close()
         print(f"Imagem gerada: {filename}")
 
-    return filename
+    return filename, total_gasto  # Retornando também o total gasto
 
 # Função para enviar a imagem via Ultramsg
-def send_whatsapp_image(user_id, filename):
+def send_whatsapp_image(user_id, filename, total_gasto):
     instance_id = "instance108935"  # ID da instância no Ultramsg
     api_token = "kpqhxmm0ojg2ufqk"  # Token do Ultramsg
 
@@ -77,7 +76,7 @@ def send_whatsapp_image(user_id, filename):
     payload = {
         "to": f"{user_id}@c.us",
         "image": image_url,
-        "caption": "📊 Seu extrato financeiro gerado automaticamente."
+        "caption": f"📊 Segue seu extrato, total de gastos R$ {total_gasto:.2f}"
     }
 
     response = requests.post(ultramsg_url, json=payload)
@@ -103,10 +102,10 @@ def generate():
     if not user_id or not lancamentos:
         return jsonify({"error": "user_id e lançamentos são obrigatórios"}), 400
 
-    filename = asyncio.run(generate_image(user_id, lancamentos))
+    filename, total_gasto = asyncio.run(generate_image(user_id, lancamentos))
 
-    # Enviar a imagem para o WhatsApp
-    whatsapp_response = send_whatsapp_image(user_id, filename)
+    # Enviar a imagem para o WhatsApp com o total gasto
+    whatsapp_response = send_whatsapp_image(user_id, filename, total_gasto)
 
     return jsonify({"message": "Imagem gerada e enviada com sucesso!", "filename": filename, "whatsapp_response": whatsapp_response})
 
