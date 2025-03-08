@@ -1,11 +1,16 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import asyncio
 import time
 import uuid
+import os
 import requests
 from playwright.async_api import async_playwright
 
 app = Flask(__name__)
+
+# Criar diretório para salvar imagens se não existir
+IMAGE_FOLDER = "images"
+os.makedirs(IMAGE_FOLDER, exist_ok=True)
 
 # Função para gerar a imagem
 async def generate_image():
@@ -52,7 +57,7 @@ async def generate_image():
     </html>
     """
 
-    filename = f"extrato_{user_id}_{int(time.time())}_{uuid.uuid4().hex[:6]}.png"
+    filename = f"{IMAGE_FOLDER}/extrato_{user_id}_{int(time.time())}_{uuid.uuid4().hex[:6]}.png"
 
     async with async_playwright() as p:
         browser = await p.chromium.launch()
@@ -74,11 +79,14 @@ def send_whatsapp_image(filename):
     instance_id = "instance108935"  # ID da instância no Ultramsg
     api_token = "kpqhxmm0ojg2ufqk"  # Novo token do Ultramsg
 
+    # Criar URL pública para a imagem
+    image_url = f"https://flask-server-production-e1cb.up.railway.app/images/{os.path.basename(filename)}"
+
     ultramsg_url = f"https://api.ultramsg.com/{instance_id}/messages/image?token={api_token}"
 
     payload = {
         "to": f"{user_id}@c.us",
-        "image": f"https://flask-server-production-e1cb.up.railway.app/images/{filename}",
+        "image": image_url,
         "caption": "📊 Seu extrato financeiro gerado automaticamente."
     }
 
@@ -88,6 +96,11 @@ def send_whatsapp_image(filename):
         return response.json()
     else:
         return {"error": "Falha ao enviar imagem", "details": response.text}
+
+# Rota para servir imagens geradas
+@app.route('/images/<filename>')
+def get_image(filename):
+    return send_from_directory(IMAGE_FOLDER, filename)
 
 # Rota principal para gerar e enviar a imagem
 @app.route('/generate', methods=['POST'])
