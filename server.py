@@ -8,7 +8,9 @@ from playwright.async_api import async_playwright
 app = Flask(__name__)
 
 # Função para gerar a imagem
-async def generate_image(user_id):
+async def generate_image():
+    user_id = "5511982252058"  # Número fixo do WhatsApp para teste
+
     html_content = """
     <!DOCTYPE html>
     <html lang="pt">
@@ -67,7 +69,8 @@ async def generate_image(user_id):
     return filename
 
 # Função para enviar a imagem via Ultramsg
-def send_whatsapp_image(user_id, filename):
+def send_whatsapp_image(filename):
+    user_id = "5511982252058"  # Número fixo do WhatsApp para teste
     ultramsg_url = "https://api.ultramsg.com/instance108935/messages/image"
     api_token = "9ufrew1imscgvwja"
 
@@ -88,16 +91,10 @@ def send_whatsapp_image(user_id, filename):
 # Rota principal para gerar e enviar a imagem
 @app.route('/generate', methods=['POST'])
 def generate():
-    data = request.get_json()
-    user_id = data.get("user_id")
-
-    if not user_id:
-        return jsonify({"error": "user_id é obrigatório"}), 400
-
-    filename = asyncio.run(generate_image(user_id))
+    filename = asyncio.run(generate_image())
 
     # Enviar a imagem para o WhatsApp
-    whatsapp_response = send_whatsapp_image(user_id, filename)
+    whatsapp_response = send_whatsapp_image(filename)
 
     return jsonify({"message": "Imagem gerada e enviada com sucesso!", "filename": filename, "whatsapp_response": whatsapp_response})
 
