@@ -2,10 +2,12 @@ from flask import Flask, request, jsonify
 import asyncio
 import time
 import uuid
+import requests
 from playwright.async_api import async_playwright
 
 app = Flask(__name__)
 
+# Função para gerar a imagem
 async def generate_image(user_id):
     html_content = """
     <!DOCTYPE html>
@@ -64,6 +66,26 @@ async def generate_image(user_id):
 
     return filename
 
+# Função para enviar a imagem via Ultramsg
+def send_whatsapp_image(user_id, filename):
+    ultramsg_url = "https://api.ultramsg.com/INSTANCE_ID/messages/image"
+    api_token = "SEU_ULTRAMSG_TOKEN"
+
+    payload = {
+        "token": api_token,
+        "to": f"{user_id}@c.us",
+        "image": f"https://flask-server-production-e1cb.up.railway.app/images/{filename}",
+        "caption": "📊 Seu extrato financeiro gerado automaticamente."
+    }
+
+    response = requests.post(ultramsg_url, json=payload)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return {"error": "Falha ao enviar imagem", "details": response.text}
+
+# Rota principal para gerar e enviar a imagem
 @app.route('/generate', methods=['POST'])
 def generate():
     data = request.get_json()
@@ -74,8 +96,12 @@ def generate():
 
     filename = asyncio.run(generate_image(user_id))
 
-    return jsonify({"message": "Imagem gerada com sucesso!", "filename": filename})
+    # Enviar a imagem para o WhatsApp
+    whatsapp_response = send_whatsapp_image(user_id, filename)
 
+    return jsonify({"message": "Imagem gerada e enviada com sucesso!", "filename": filename, "whatsapp_response": whatsapp_response})
+
+# Rota padrão para testar se o servidor está ativo
 @app.route('/')
 def home():
     return "Servidor Flask rodando no Railway!"
