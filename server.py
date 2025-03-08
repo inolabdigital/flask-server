@@ -72,7 +72,7 @@ async def generate_image():
 def send_whatsapp_image(filename):
     user_id = "5511982252058"  # Número fixo do WhatsApp para teste
     ultramsg_url = "https://api.ultramsg.com/instance108935/messages/image"
-    api_token = "9ufrew1imscgvwja"
+    api_token = "kpqhxmm0ojg2ufqk"
 
     payload = {
         "token": api_token,
