@@ -87,7 +87,7 @@ def send_whatsapp_image(user_id, filename, total_gasto):
     payload = {
         "to": f"{user_id}@c.us",
         "image": image_url,
-        "caption": f"📊 Segue seu extrato com o total de gastos de R$ {total_gasto:.2f}"
+        "caption": f"📊 Segue seu extrato, total de gastos R$ {total_gasto:.2f}"
     }
 
     response = requests.post(ultramsg_url, json=payload)
