@@ -68,8 +68,8 @@ async def generate_image(user_id):
 
 # Função para enviar a imagem via Ultramsg
 def send_whatsapp_image(user_id, filename):
-    ultramsg_url = "https://api.ultramsg.com/INSTANCE_ID/messages/image"
-    api_token = "SEU_ULTRAMSG_TOKEN"
+    ultramsg_url = "https://api.ultramsg.com/instance108935/messages/image"
+    api_token = "9ufrew1imscgvwja"
 
     payload = {
         "token": api_token,
