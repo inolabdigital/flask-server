@@ -101,8 +101,7 @@ async def generate_pizza_chart(user_id, lancamentos):
 
         plt.figure(figsize=(6, 6))
         plt.pie(values, labels=labels, autopct="%1.1f%%", startangle=140, colors=["#008DC2", "#00A3E0", "#50C1E9", "#87D9F7"])
-        plt.title("Distribuição de Gastos")
-
+        
         filename = f"{IMAGE_FOLDER}/grafico_pizza_{user_id}_{int(time.time())}_{uuid.uuid4().hex[:6]}.png"
         plt.savefig(filename, bbox_inches="tight")
         plt.close()
