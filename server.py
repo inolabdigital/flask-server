@@ -36,19 +36,22 @@ async def generate_pizza_chart(user_id, lancamentos):
         labels = list(categorias.keys())
         values = list(categorias.values())
 
-        # Cores aleatórias para cada categoria, tornando o gráfico mais visualmente agradável
+        # Cores variadas para melhor visualização
         colors = plt.cm.get_cmap("tab10", len(labels)).colors
 
         plt.figure(figsize=(6, 6))
-        wedges, texts, autotexts = plt.pie(values, labels=None, autopct=None, startangle=140, colors=colors)
+        wedges, texts = plt.pie(
+            values, labels=None, startangle=140, colors=colors, wedgeprops={"edgecolor": "white"}
+        )
 
-        # Ajusta os textos da legenda e exibe os percentuais ao lado esquerdo das categorias
+        # Criar legendas ao lado esquerdo com percentuais
         legend_labels = [f"{label} - {value / sum(values) * 100:.1f}%" for label, value in zip(labels, values)]
         plt.legend(wedges, legend_labels, title="Categorias", loc="lower center", bbox_to_anchor=(0.5, -0.1), ncol=2, frameon=False, fontsize=10)
 
-        # Salvar imagem
+        # Salvar a imagem com dpi maior e tempo de espera para evitar erro 502
         filename = f"{IMAGE_FOLDER}/grafico_pizza_{user_id}_{int(time.time())}_{uuid.uuid4().hex[:6]}.png"
-        plt.savefig(filename, bbox_inches="tight")
+        plt.savefig(filename, bbox_inches="tight", dpi=300)
+        plt.pause(1)  # Adiciona uma pausa para garantir que a imagem seja processada corretamente
         plt.close()
 
         return filename, total_gasto
